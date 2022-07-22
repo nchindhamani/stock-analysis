@@ -257,3 +257,37 @@ def show_portfolio():
 
 
     return render_template("portfolio.html",portf_df=portf_df,max_strf_date=max_strf_date)
+
+
+@core.route('/api/<industry_name>/')
+def api(industry_name):
+    df_stock_info = pd.read_pickle("./stock_info_bse.pkl")
+    df_stock_info = df_stock_info[df_stock_info["INDUSTRY"]==industry_name]
+
+    if 'curr_session_dt' in session:
+        str_curr_session_dt = dt.strptime(session['curr_session_dt'],'%Y-%m-%d');
+
+    from nsepy.history import get_price_list
+    df_daily_bhav = get_price_list(dt=str_curr_session_dt)
+
+
+    df_daily_bhav['Change %'] = (df_daily_bhav.CLOSE - df_daily_bhav.PREVCLOSE)/100
+    #print('df_daily_bhav: ',df_daily_bhav[['SYMBOL', 'ISIN', 'OPEN', 'HIGH', 'LOW','CLOSE', 'Change %']])
+    df_daily_bhav = df_daily_bhav[['SYMBOL', 'ISIN', 'OPEN', 'HIGH', 'LOW','CLOSE', 'Change %']]
+
+    result = pd.merge(df_stock_info, df_daily_bhav, how='inner', on = 'ISIN')
+    #print(result[['SYMBOL_x','NAME_OF_COMPANY', 'OPEN', 'HIGH', 'LOW','CLOSE', 'Change %']])
+    latest_rec_df = result[['SYMBOL_x','NAME_OF_COMPANY', 'OPEN', 'HIGH', 'LOW','CLOSE', 'Change %']]
+
+    max_strf_date = session['curr_session_dt']
+
+    #print('max_strf_date: ',max_strf_date)
+    #print('latest_rec_df: ',latest_rec_df)
+
+
+    #latest_rec_df_2 = latest_rec_df.set_index('SYMBOL_x')
+    #latest_rec_dict = latest_rec_df_2.to_dict(orient = 'index')
+    latest_rec_dict = latest_rec_df.set_index('SYMBOL_x').to_dict(orient = 'index')
+    #print('latest_rec_dict: ', latest_rec_dict)
+
+    return latest_rec_dict

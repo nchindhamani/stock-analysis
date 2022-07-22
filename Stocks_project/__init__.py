@@ -19,7 +19,7 @@ app = Flask(__name__)
 #Code Change on 06-MAY-2022 starts
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-app.config['SECRET_KEY'] = 'mysecretkey'
+app.config['SECRET_KEY'] = f"{os.getenv('SECRET_KEY')}"
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+os.path.join(basedir,'data.sqlite')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
